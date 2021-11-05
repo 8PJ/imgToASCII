@@ -4,10 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.awt.Image;
 import java.awt.Color;
-
 import javax.imageio.ImageIO;
 
 public class Converter {
+
     public static void main(String[] args) {
 
         String imgPath = "";
@@ -30,9 +30,20 @@ public class Converter {
             System.exit(0);
         }
 
-        char[][] ascii = getASCII(img);
+        img = resize(img, 50);
 
-        img = resize(img, 100);
+        char[][] ascii = getASCII(img);
+        printASCII(ascii);
+    }
+
+    private static void printASCII(char[][] ascii) {
+
+        for (int i = 0; i < ascii.length; i++) {
+            for (int j = 0; j < ascii[0].length; j++) {
+                System.out.print(ascii[i][j]);
+            }
+            System.out.println();
+        }
     }
 
     private static char[][] getASCII(BufferedImage img) {
@@ -40,13 +51,19 @@ public class Converter {
         int height = img.getHeight();
         int width = img.getWidth();
 
-        char[][] ascii = new char[width][height]; // for storing ascii chars
+        char[][] ascii = new char[height][width];
 
         Color color;
-        for (int i = 0; i < width; i++) {
-            for (int j = 0; j < height; j++) {
-                color = new Color(img.getRGB(i, j));
+        for (int i = 0; i < height; i++) {
+            for (int j = 0; j < width; j++) {
+                color = new Color(img.getRGB(j, i));
+                double luminance = 0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue();
 
+                if (luminance > 131.325) {
+                    ascii[i][j] = '.';
+                } else {
+                    ascii[i][j] = ' ';
+                }
             }
         }
 
