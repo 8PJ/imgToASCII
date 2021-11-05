@@ -1,5 +1,4 @@
 import java.awt.image.BufferedImage;
-import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.awt.Image;
@@ -30,7 +29,7 @@ public class Converter {
             System.exit(0);
         }
 
-        img = resize(img, 50);
+        img = resize(img, 80);
 
         char[][] ascii = getASCII(img);
         printASCII(ascii);
@@ -48,6 +47,20 @@ public class Converter {
 
     private static char[][] getASCII(BufferedImage img) {
 
+        // different chars for different strengths of luminance
+        char[] strength = new char[11];
+        strength[0] = ' ';
+        strength[1] = '.';
+        strength[2] = ':';
+        strength[3] = '-';
+        strength[4] = '=';
+        strength[5] = '+';
+        strength[6] = ':';
+        strength[7] = '*';
+        strength[8] = '#';
+        strength[9] = '%';
+        strength[10] = '@';
+
         int height = img.getHeight();
         int width = img.getWidth();
 
@@ -58,15 +71,9 @@ public class Converter {
             for (int j = 0; j < width; j++) {
                 color = new Color(img.getRGB(j, i));
                 double luminance = 0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue();
-
-                if (luminance > 131.325) {
-                    ascii[i][j] = '.';
-                } else {
-                    ascii[i][j] = ' ';
-                }
+                ascii[i][j] = strength[(int) (luminance / 23.877)];
             }
         }
-
         return ascii;
     }
 
@@ -74,20 +81,24 @@ public class Converter {
 
         int height = img.getHeight();
         int width = img.getWidth();
+        double scale;
 
         if (height > maxDimention || width > maxDimention) {
-
-            double scale = (height > width) ? height : width;
-            double ratio = maxDimention / scale;
-
-            int newHeight = (int) (height * ratio);
-            int newWidth = (int) (width * ratio);
-
-            // Resize the image, so that height and length <= maxDimention
-            Image temp = img.getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT);
-            img = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
-            img.getGraphics().drawImage(temp, 0, 0, null);
+            scale = (height > width) ? height : width;
+        } else {
+            scale = 1;
         }
+
+        double ratio = maxDimention / scale;
+
+        int newHeight = (int) (height * ratio * 0.5);
+        int newWidth = (int) (width * ratio);
+
+        // Resize the image, so that height and length <= maxDimention
+        Image temp = img.getScaledInstance(newWidth, newHeight, Image.SCALE_DEFAULT);
+        img = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
+        img.getGraphics().drawImage(temp, 0, 0, null);
+
         return img;
     }
 }
