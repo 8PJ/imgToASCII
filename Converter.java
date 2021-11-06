@@ -11,12 +11,17 @@ public class Converter {
 
         String imgPath = "";
         BufferedImage img = null;
+        int inverted = 0;
 
         try {
             imgPath = args[0]; // get image path
         } catch (ArrayIndexOutOfBoundsException e) {
             System.err.println("No file path provided");
             System.exit(0);
+        }
+
+        if (args.length > 1 && args[1].equals("i")) {
+            inverted = 10;
         }
 
         try {
@@ -29,9 +34,9 @@ public class Converter {
             System.exit(0);
         }
 
-        img = resize(img, 80);
+        img = resize(img, 150);
 
-        char[][] ascii = getASCII(img);
+        char[][] ascii = getASCII(img, inverted);
         printASCII(ascii);
     }
 
@@ -45,7 +50,7 @@ public class Converter {
         }
     }
 
-    private static char[][] getASCII(BufferedImage img) {
+    private static char[][] getASCII(BufferedImage img, int inverted) {
 
         // different chars for different strengths of luminance
         char[] strength = new char[11];
@@ -71,7 +76,8 @@ public class Converter {
             for (int j = 0; j < width; j++) {
                 color = new Color(img.getRGB(j, i));
                 double luminance = 0.299 * color.getRed() + 0.587 * color.getGreen() + 0.114 * color.getBlue();
-                ascii[i][j] = strength[(int) (luminance / 23.877)];
+                int index = Math.abs(inverted - (int) (luminance / 23.877));
+                ascii[i][j] = strength[index];
             }
         }
         return ascii;
@@ -91,7 +97,9 @@ public class Converter {
 
         double ratio = maxDimention / scale;
 
-        int newHeight = (int) (height * ratio * 0.5);
+        // gaps between lines are two times bigger than between same line neighbour chars
+        // thus the need to multiply height by 0.5
+        int newHeight = (int) (height * ratio * 0.5); 
         int newWidth = (int) (width * ratio);
 
         // Resize the image, so that height and length <= maxDimention
